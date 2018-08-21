@@ -9,7 +9,7 @@ import {
   Platform,
   ScrollView
 } from "react-native";
-import {AppLoading} from 'expo';
+import { AppLoading } from "expo";
 import ToDo from "./ToDo";
 import uuidv1 from "uuid/v1";
 
@@ -18,16 +18,18 @@ const { height, width } = Dimensions.get("window");
 export default class App extends React.Component {
   state = {
     newToDo: "",
-    loadedToDos: true
+    loadedToDos: false,
+    toDos: {}
   };
   componentDidMount = () => {
-
-  }
+    this._loadToDos();
+  };
   render() {
-    const { newToDo, loadedToDos } = this.state;
-    if(!loadedToDos){
-      return <AppLoading/>
+    const { newToDo, loadedToDos, toDos } = this.state;
+    if (!loadedToDos) {
+      return <AppLoading />;
     }
+    console.log(toDos);
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -44,7 +46,9 @@ export default class App extends React.Component {
             onSubmitEditing={this._addToDo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            <ToDo text={"Hello I'm To Do gdgdgd "}/>
+            {Object.values(toDos).map(toDo => (
+              <ToDo key={toDo.id} deleteToDo={this._deleteToDo} {...toDo} />
+            ))}
           </ScrollView>
         </View>
       </View>
@@ -58,11 +62,11 @@ export default class App extends React.Component {
   _loadToDos = () => {
     this.setState({
       loadedToDos: true
-    })
-  }
+    });
+  };
   _addToDo = () => {
     const { newToDo } = this.state;
-    if(newToDo !== ""){
+    if (newToDo !== "") {
       this.setState(prevState => {
         const ID = uuidv1();
         const newToDoObject = {
@@ -74,19 +78,28 @@ export default class App extends React.Component {
           }
         };
         const newState = {
-          ...prevState.toDos,
+          ...prevState,
           newToDo: "",
-          ...newToDoObject
+          toDos: {
+            ...prevState.toDos,
+            ...newToDoObject
+          }
         };
         return { ...newState };
       });
-
     }
-
-    const toDos = { // array는 삭제하기 힘들어서 object로 관리
-
-    };
-  }
+  };
+  _deleteToDo = id => {
+    this.setState(prevState => {
+      const toDos = prevState.toDos;
+      delete toDos[id];
+      const newState = {
+        ...prevState,
+        ...toDos
+      };
+      return { ...newState };
+    });
+  };
 }
 
 const styles = StyleSheet.create({
