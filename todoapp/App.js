@@ -14,7 +14,7 @@ import { AppLoading } from "expo";
 import ToDo from "./ToDo";
 import uuidv1 from "uuid/v1";
 import Weather from "./Weather";
-
+import Time from "./Time";
 const API_KEY = "348d898faa3b0d6db306ea6c58b7f816";
 
 const { height, width } = Dimensions.get("window");
@@ -31,7 +31,7 @@ export default class App extends React.Component {
   };
   componentDidMount = () => {
     this._loadToDos();
-    
+
     navigator.geolocation.getCurrentPosition(
       position => {
         this._getWeather(position.coords.latitude, position.coords.longitude);
@@ -54,7 +54,7 @@ export default class App extends React.Component {
           temperature: json.main.temp,
           name: json.weather[0].main,
           isLoadedWeatherApi: true
-        }); 
+        });
       });
   };
 
@@ -75,13 +75,23 @@ export default class App extends React.Component {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         {isLoadedWeatherApi ? (
-          <Weather weatherName={name} temp={Math.floor(temperature - 273.15)} />
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+          }}>
+            <Weather
+              weatherName={name}
+              temp={Math.floor(temperature - 273.15)}
+            />
+          </View>
         ) : (
           <View style={styles.loading}>
             <Text style={styles.loadingText}>날씨 정보 불러오는 중입니다.</Text>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </View>
         )}
+        <Time/>
         <View style={styles.card}>
           <TextInput
             style={styles.input}

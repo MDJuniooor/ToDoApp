@@ -62,18 +62,20 @@ const weatherCases = {
 
 function Weather({ weatherName, temp }) {
   return (
-    <View style={styles.container}>
-        <MaterialCommunityIcons
-          color="white"
-          size={100}
-          name={weatherCases[weatherName].icon}
-        />
+    <View style={styles.weatherContainer}>
+      <MaterialCommunityIcons
+        color="white"
+        size={32}
+        name={weatherCases[weatherName].icon}
+      />
+      <View style={styles.lower}>
         <Text style={styles.title}>
           {temp}
           &deg;
         </Text>
         <Text style={styles.title}>{weatherCases[weatherName].title}</Text>
       </View>
+    </View>
   );
 }
 
@@ -84,39 +86,19 @@ Weather.propTypes = {
 
 export default Weather;
 const styles = StyleSheet.create({
-   container: {
+  weatherContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "space-evenly",
-    backgroundColor: "transparent",
-    flexDirection: 'row',
-    marginTop: 30
+    flexDirection: "row",
+    marginTop: 30,
   },
-  temp: {
-    fontSize: 38,
-    backgroundColor: "transparent",
-    color: "white",
-    marginBottom: 38,
-    marginTop: 10
-  },
-  lower: {
-    flex: 1,
-    alignItems: "flex-start",
-    justifyContent: "flex-end",
-    paddingLeft: 25
+  lower : {
+    flexDirection: "column",
   },
   title: {
-    fontSize: 30,
+    fontSize: 12,
     backgroundColor: "transparent",
     color: "white",
-    marginBottom: 10,
     fontWeight: "100",
-    marginLeft: 20
-  },
-  subtitle: {
-    fontSize: 18,
-    backgroundColor: "transparent",
-    color: "white",
-    marginBottom: 24
+    marginLeft: 10
   }
 });
