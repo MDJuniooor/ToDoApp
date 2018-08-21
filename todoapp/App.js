@@ -7,7 +7,8 @@ import {
   TextInput,
   Dimensions,
   Platform,
-  ScrollView
+  ScrollView,
+  AsyncStorage
 } from "react-native";
 import { AppLoading } from "expo";
 import ToDo from "./ToDo";
@@ -29,11 +30,10 @@ export default class App extends React.Component {
     if (!loadedToDos) {
       return <AppLoading />;
     }
-    console.log(toDos);
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <Text style={styles.title}>Kawai To Do</Text>
+        <Text style={styles.title}>귀요미 투두 앱</Text>
         <View style={styles.card}>
           <TextInput
             style={styles.input}
@@ -92,6 +92,7 @@ export default class App extends React.Component {
             ...newToDoObject
           }
         };
+        this._saveToDos(newState.toDos);
         return { ...newState };
       });
     }
@@ -104,6 +105,7 @@ export default class App extends React.Component {
         ...prevState,
         ...toDos
       };
+      this._saveToDos(newState.toDos);
       return { ...newState };
     });
   };
@@ -119,10 +121,11 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return { ...newState };
     });
   };
-  
+
   _completedToDo = id => {
     this.setState(prevState => {
       const newState = {
@@ -135,6 +138,7 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return { ...newState };
     });
   };
@@ -151,9 +155,15 @@ export default class App extends React.Component {
           }
         }
       };
+      this._saveToDos(newState.toDos);
       return { ...newState };
     });
   };
+
+  _saveToDos = (newToDos) => {
+    // console.log(JSON.stringify(newToDos)); 
+    const saveToDos = AsyncStorage.setItem("todos", JSON.stringify(newToDos)); // strings 저장용
+  }
 }
 
 const styles = StyleSheet.create({
