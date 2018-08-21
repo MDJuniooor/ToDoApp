@@ -90,7 +90,12 @@ export default class ToDo extends Component {
                 />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPressOut={() => deleteToDo(id)}>
+            <TouchableOpacity
+              onPressOut={event => {
+                event.stopPropagation;
+                deleteToDo(id);
+              }}
+            >
               <View style={styles.actionContainer}>
                 <MaterialCommunityIcons
                   color="#F23657"
@@ -104,7 +109,8 @@ export default class ToDo extends Component {
       </View>
     );
   }
-  _toggleComplete = () => {
+  _toggleComplete = event => {
+    event.stopPropagation();
     const { isCompleted, uncompletedToDo, completedToDo, id } = this.props;
     if (isCompleted) {
       uncompletedToDo(id);
@@ -112,7 +118,8 @@ export default class ToDo extends Component {
       completedToDo(id);
     }
   };
-  _startEditing = () => {
+  _startEditing = event => {
+    event.stopPropagation();
     const { text } = this.props;
     this.setState(prevState => {
       return {
@@ -121,7 +128,8 @@ export default class ToDo extends Component {
       };
     });
   };
-  _finishEditing = () => {
+  _finishEditing = event => {
+    event.stopPropagation();
     const { toDoValue } = this.state;
     const { id, updateToDo } = this.props;
     updateToDo(id, toDoValue);
@@ -153,7 +161,7 @@ const styles = StyleSheet.create({
     borderColor: "#bbb"
   },
   uncompletedCircle: {
-    borderColor: "#F23657"
+    borderColor: "#3FA9F5"
   },
   text: {
     fontWeight: "600",

@@ -13,6 +13,9 @@ import {
 import { AppLoading } from "expo";
 import ToDo from "./ToDo";
 import uuidv1 from "uuid/v1";
+import Weather from "./Weather";
+
+const API_KEY = "348d898faa3b0d6db306ea6c58b7f816";
 
 const { height, width } = Dimensions.get("window");
 
@@ -20,20 +23,65 @@ export default class App extends React.Component {
   state = {
     newToDo: "",
     loadedToDos: false,
-    toDos: {}
+    toDos: {},
+    isLoadedWeatherApi: false,
+    erorr: null,
+    temperature: null,
+    name: null
   };
   componentDidMount = () => {
     this._loadToDos();
+    
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        this._getWeather(position.coords.latitude, position.coords.longitude);
+      },
+      error => {
+        this.setState({
+          error: error
+        });
+      }
+    );
   };
+  _getWeather = (lat, long) => {
+    fetch(
+      `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&APPID=${API_KEY}`
+    )
+      .then(response => response.json())
+      .then(json => {
+        console.log(json);
+        this.setState({
+          temperature: json.main.temp,
+          name: json.weather[0].main,
+          isLoadedWeatherApi: true
+        }); 
+      });
+  };
+
   render() {
-    const { newToDo, loadedToDos, toDos } = this.state;
+    const {
+      newToDo,
+      loadedToDos,
+      toDos,
+      isLoadedWeatherApi,
+      error,
+      temperature,
+      name
+    } = this.state;
     if (!loadedToDos) {
       return <AppLoading />;
     }
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <Text style={styles.title}>귀요미 투두 앱</Text>
+        {isLoadedWeatherApi ? (
+          <Weather weatherName={name} temp={Math.floor(temperature - 273.15)} />
+        ) : (
+          <View style={styles.loading}>
+            <Text style={styles.loadingText}>날씨 정보 불러오는 중입니다.</Text>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </View>
+        )}
         <View style={styles.card}>
           <TextInput
             style={styles.input}
@@ -44,18 +92,21 @@ export default class App extends React.Component {
             returnKeyType={"done"}
             autoCorrect={false}
             onSubmitEditing={this._addToDo}
+            underlineColorAndroid={"transparent"}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            {Object.values(toDos).map(toDo => (
-              <ToDo
-                key={toDo.id}
-                deleteToDo={this._deleteToDo}
-                uncompletedToDo={this._uncompletedToDo}
-                completedToDo={this._completedToDo}
-                updateToDo={this._updateToDo}
-                {...toDo}
-              />
-            ))}
+            {Object.values(toDos)
+              .reverse()
+              .map(toDo => (
+                <ToDo
+                  key={toDo.id}
+                  deleteToDo={this._deleteToDo}
+                  uncompletedToDo={this._uncompletedToDo}
+                  completedToDo={this._completedToDo}
+                  updateToDo={this._updateToDo}
+                  {...toDo}
+                />
+              ))}
           </ScrollView>
         </View>
       </View>
@@ -66,10 +117,18 @@ export default class App extends React.Component {
       newToDo: text
     });
   };
-  _loadToDos = () => {
-    this.setState({
-      loadedToDos: true
-    });
+  _loadToDos = async () => {
+    try {
+      await AsyncStorage.clear();
+      const toDos = await AsyncStorage.getItem("toDos");
+      let parsedToDos = {};
+      if (toDos !== null) {
+        parsedToDos = JSON.parse(toDos);
+      }
+      this.setState({ loadedToDos: true, toDos: parsedToDos });
+    } catch (err) {
+      console.log(err);
+    }
   };
   _addToDo = () => {
     const { newToDo } = this.state;
@@ -160,17 +219,31 @@ export default class App extends React.Component {
     });
   };
 
-  _saveToDos = (newToDos) => {
-    // console.log(JSON.stringify(newToDos)); 
-    const saveToDos = AsyncStorage.setItem("todos", JSON.stringify(newToDos)); // strings 저장용
-  }
+  _saveToDos = newToDos => {
+    const saveToDos = AsyncStorage.setItem("toDos", JSON.stringify(newToDos)); // strings 저장용
+  };
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F23657",
+    backgroundColor: "#3FA9F5",
     alignItems: "center"
+  },
+  errorText: {
+    color: "red",
+    backgroundColor: "transparent",
+    marginBottom: 40
+  },
+  loading: {
+    flex: 1,
+    backgroundColor: "#3FA9F5",
+    justifyContent: "flex-end",
+    paddingRight: 25
+  },
+  loadingText: {
+    fontSize: 38,
+    marginBottom: 100
   },
   title: {
     color: "white",
@@ -181,7 +254,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "white",
-    flex: 1,
+    flex: 3,
     width: width - 25,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -203,7 +276,7 @@ const styles = StyleSheet.create({
   input: {
     padding: 20,
     borderBottomColor: "#bbb",
-    // borderBottomWidth: 1,
+    borderBottomWidth: 1,
     fontSize: 25
   },
   toDos: {
