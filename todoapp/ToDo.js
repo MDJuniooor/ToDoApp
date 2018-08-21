@@ -12,9 +12,9 @@ import PropTypes from "prop-types";
 const { width, height } = Dimensions.get("window");
 
 export default class ToDo extends Component {
-  constructor(props){
+  constructor(props) {
     super(props);
-    this.state ={ isEditing: false, toDoValue: props.text };
+    this.state = { isEditing: false, toDoValue: props.text };
   }
   static propTypes = {
     text: PropTypes.string.isRequired,
@@ -23,9 +23,10 @@ export default class ToDo extends Component {
     id: PropTypes.string.isRequired,
     uncompletedToDo: PropTypes.func.isRequired,
     completedToDo: PropTypes.func.isRequired,
+    updateToDo: PropTypes.func.isRequired
   };
   state = {
-    isEditing: false, 
+    isEditing: false,
     toDoValue: ""
   };
   render() {
@@ -89,7 +90,7 @@ export default class ToDo extends Component {
                 />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPressOut={()=> deleteToDo(id)}>
+            <TouchableOpacity onPressOut={() => deleteToDo(id)}>
               <View style={styles.actionContainer}>
                 <MaterialCommunityIcons
                   color="#F23657"
@@ -104,8 +105,8 @@ export default class ToDo extends Component {
     );
   }
   _toggleComplete = () => {
-    const{isCompleted, uncompletedToDo, completedToDo, id} = this.props;
-    if(isCompleted){
+    const { isCompleted, uncompletedToDo, completedToDo, id } = this.props;
+    if (isCompleted) {
       uncompletedToDo(id);
     } else {
       completedToDo(id);
@@ -121,10 +122,11 @@ export default class ToDo extends Component {
     });
   };
   _finishEditing = () => {
+    const { toDoValue } = this.state;
+    const { id, updateToDo } = this.props;
+    updateToDo(id, toDoValue);
     this.setState(prevState => {
-      return {
-        isEditing: !prevState.isEditing
-      };
+      return { isEditing: false };
     });
   };
   _controllInput = text => {
