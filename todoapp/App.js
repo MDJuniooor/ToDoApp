@@ -8,16 +8,18 @@ import {
   Dimensions,
   Platform,
   ScrollView,
-  AsyncStorage
+  AsyncStorage,
+  ImageBackground
 } from "react-native";
 import { AppLoading } from "expo";
+import HTML from "react-native-render-html";
 import ToDo from "./ToDo";
 import uuidv1 from "uuid/v1";
 import Weather from "./Weather";
 import Time from "./Time";
-const API_KEY = "348d898faa3b0d6db306ea6c58b7f816";
 
-const { height, width } = Dimensions.get("window");
+const API_KEY = "348d898faa3b0d6db306ea6c58b7f816";
+const { width, height } = Dimensions.get("window");
 
 export default class App extends React.Component {
   state = {
@@ -27,11 +29,13 @@ export default class App extends React.Component {
     isLoadedWeatherApi: false,
     erorr: null,
     temperature: null,
-    name: null
+    name: null,
+    quote_title: null,
+    quote_content: null
   };
   componentDidMount = () => {
     this._loadToDos();
-
+    this._getQuote();
     navigator.geolocation.getCurrentPosition(
       position => {
         this._getWeather(position.coords.latitude, position.coords.longitude);
@@ -49,7 +53,6 @@ export default class App extends React.Component {
     )
       .then(response => response.json())
       .then(json => {
-        console.log(json);
         this.setState({
           temperature: json.main.temp,
           name: json.weather[0].main,
@@ -57,7 +60,19 @@ export default class App extends React.Component {
         });
       });
   };
-
+  _getQuote = async () => {
+    const response = await fetch(
+      "http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1"
+    )
+      .then(response => response.json())
+      .then(json => {
+        console.log(json[0]);
+        this.setState({
+          quote_title: json[0].title,
+          quote_content: json[0].content
+        });
+      });
+  };
   render() {
     const {
       newToDo,
@@ -68,57 +83,85 @@ export default class App extends React.Component {
       temperature,
       name
     } = this.state;
+
     if (!loadedToDos) {
       return <AppLoading />;
     }
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" />
-        {isLoadedWeatherApi ? (
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-          }}>
-            <Weather
-              weatherName={name}
-              temp={Math.floor(temperature - 273.15)}
+        <StatusBar hidden={true} />
+        <ImageBackground
+          style={{
+            flex: 1,
+            alignSelf: 'center',
+            height: height,
+            width: width,
+            justifyContent: "center",
+            alignItems: "center",
+
+          }}
+          source={require("./assets/back3.jpg")}
+        >
+          {isLoadedWeatherApi ? (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                alignItems: "flex-start"
+              }}
+            >
+              <Weather
+                weatherName={name}
+                temp={Math.floor(temperature - 273.15)}
+              />
+              <View style={styles.greeting}>
+                <Text style={styles.greetingText}> Hello DaeSung !</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.loading}>
+              <Text style={styles.loadingText}>
+                날씨 정보 불러오는 중입니다.
+              </Text>
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            </View>
+          )}
+          <Time />
+          <View style={styles.quote}>
+            <HTML
+              baseFontStyle={{ fontSize: 14, color: "white" }}
+              html={"<p>" + this.state.quote_content + "</p>"}
             />
+            <Text style={styles.quoteText}>{this.state.quote_title}</Text>
           </View>
-        ) : (
-          <View style={styles.loading}>
-            <Text style={styles.loadingText}>날씨 정보 불러오는 중입니다.</Text>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <View style={styles.card}>
+            <TextInput
+              style={styles.input}
+              placeholder={"New To Do"}
+              value={newToDo}
+              onChangeText={this._contollNewToDo}
+              placeholderTextColor={"#999"}
+              returnKeyType={"done"}
+              autoCorrect={false}
+              onSubmitEditing={this._addToDo}
+              underlineColorAndroid={"transparent"}
+            />
+            <ScrollView contentContainerStyle={styles.toDos}>
+              {Object.values(toDos)
+                .reverse()
+                .map(toDo => (
+                  <ToDo
+                    key={toDo.id}
+                    deleteToDo={this._deleteToDo}
+                    uncompletedToDo={this._uncompletedToDo}
+                    completedToDo={this._completedToDo}
+                    updateToDo={this._updateToDo}
+                    {...toDo}
+                  />
+                ))}
+            </ScrollView>
           </View>
-        )}
-        <Time/>
-        <View style={styles.card}>
-          <TextInput
-            style={styles.input}
-            placeholder={"New To Do"}
-            value={newToDo}
-            onChangeText={this._contollNewToDo}
-            placeholderTextColor={"#999"}
-            returnKeyType={"done"}
-            autoCorrect={false}
-            onSubmitEditing={this._addToDo}
-            underlineColorAndroid={"transparent"}
-          />
-          <ScrollView contentContainerStyle={styles.toDos}>
-            {Object.values(toDos)
-              .reverse()
-              .map(toDo => (
-                <ToDo
-                  key={toDo.id}
-                  deleteToDo={this._deleteToDo}
-                  uncompletedToDo={this._uncompletedToDo}
-                  completedToDo={this._completedToDo}
-                  updateToDo={this._updateToDo}
-                  {...toDo}
-                />
-              ))}
-          </ScrollView>
-        </View>
+        </ImageBackground>
       </View>
     );
   }
@@ -127,6 +170,7 @@ export default class App extends React.Component {
       newToDo: text
     });
   };
+
   _loadToDos = async () => {
     try {
       await AsyncStorage.clear();
@@ -255,6 +299,25 @@ const styles = StyleSheet.create({
     fontSize: 38,
     marginBottom: 100
   },
+  greeting: {
+    flex: 1,
+    marginTop: 30,
+    marginRight: 10,
+    alignItems: "flex-end"
+  },
+  greetingText: {
+    fontSize: 18,
+    color: "white"
+  },
+  quoteText: {
+    color: "white",
+    fontSize: 10
+  },
+  quote: {
+    marginRight: 20,
+    marginLeft: 20,
+    alignItems: "center",
+  },
   title: {
     color: "white",
     fontSize: 30,
@@ -264,7 +327,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "white",
-    flex: 3,
+    flex: 4,
     width: width - 25,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
