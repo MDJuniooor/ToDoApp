@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Dimensions
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { TextInput } from "react-native-gesture-handler";
 import PropTypes from "prop-types";
 const { width, height } = Dimensions.get("window");
@@ -35,14 +35,6 @@ export default class ToDo extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.column}>
-          <TouchableOpacity onPress={this._toggleComplete}>
-            <View
-              style={[
-                styles.circle,
-                isCompleted ? styles.completedCircle : styles.uncompletedCircle
-              ]}
-            />
-          </TouchableOpacity>
           {isEditing ? (
             <TextInput
               style={[
@@ -57,25 +49,24 @@ export default class ToDo extends Component {
               onBlur={this._finishEditing}
             />
           ) : (
-            <Text
-              style={[
-                styles.text,
-                isCompleted ? styles.completedText : styles.uncompletedText
-              ]}
-            >
-              {text}
-            </Text>
+            <TouchableOpacity onPress={this._toggleComplete}>
+              <Text
+                style={[
+                  styles.text,
+                  isCompleted ? styles.completedText : styles.uncompletedText,
+                  {marginLeft : 10}
+                ]}
+              >
+                {text}
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
         {isEditing ? (
           <View style={styles.actions}>
             <TouchableOpacity onPressOut={this._finishEditing}>
               <View style={styles.actionContainer}>
-                <MaterialCommunityIcons
-                  color="#2F8900"
-                  name="check"
-                  size={32}
-                />
+                <Ionicons color="#5dc952" name="md-checkmark" size={32} />
               </View>
             </TouchableOpacity>
           </View>
@@ -83,11 +74,7 @@ export default class ToDo extends Component {
           <View style={styles.actions}>
             <TouchableOpacity onPress={this._startEditing}>
               <View style={styles.actionContainer}>
-                <MaterialCommunityIcons
-                  color="black"
-                  name="lead-pencil"
-                  size={28}
-                />
+                <Ionicons color="#333333" name="md-create" size={26} />
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -96,12 +83,8 @@ export default class ToDo extends Component {
                 deleteToDo(id);
               }}
             >
-              <View style={styles.actionContainer}>
-                <MaterialCommunityIcons
-                  color="#F23657"
-                  name="close-outline"
-                  size={28}
-                />
+              <View style={[styles.actionContainer, styles.close]}>
+                <Ionicons color="#333333" name="md-close" size={32} />
               </View>
             </TouchableOpacity>
           </View>
@@ -155,17 +138,18 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15, // width, height 의 절반!
     borderWidth: 3,
+    marginLeft: 10,
     marginRight: 20
   },
   completedCircle: {
     borderColor: "#bbb"
   },
   uncompletedCircle: {
-    borderColor: "#3FA9F5"
+    borderColor: "#5dc952"
   },
   text: {
-    fontWeight: "600",
-    fontSize: 20,
+    fontWeight: "300",
+    fontSize: 15,
     marginVertical: 20 // 상단 하단 20 씩
   },
   completedText: {
@@ -184,8 +168,10 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   actionContainer: {
-    marginVertical: 10,
     marginHorizontal: 10
+  },
+  close: {
+    paddingBottom: 2
   },
   input: {
     marginVertical: 15,

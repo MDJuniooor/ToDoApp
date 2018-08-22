@@ -27,6 +27,7 @@ export default class App extends React.Component {
     loadedToDos: false,
     toDos: {},
     isLoadedWeatherApi: false,
+    isLoadedQuote: false,
     erorr: null,
     temperature: null,
     name: null,
@@ -62,15 +63,16 @@ export default class App extends React.Component {
   };
   _getQuote = async () => {
     const response = await fetch(
-      "http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1"
+      "http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=rand"
     )
       .then(response => response.json())
       .then(json => {
-        console.log(json[0]);
         this.setState({
           quote_title: json[0].title,
-          quote_content: json[0].content
+          quote_content: json[0].content,
+          isLoadedQuote: true
         });
+        console.log(this.state.quote_content);
       });
   };
   render() {
@@ -79,27 +81,22 @@ export default class App extends React.Component {
       loadedToDos,
       toDos,
       isLoadedWeatherApi,
+      isLoadedQuote,
       error,
       temperature,
-      name
+      name,
+      quote_content,
+      quote_title
     } = this.state;
 
-    if (!loadedToDos) {
+    if (!loadedToDos || !isLoadedWeatherApi || !isLoadedQuote) {
       return <AppLoading />;
     }
     return (
       <View style={styles.container}>
         <StatusBar hidden={true} />
         <ImageBackground
-          style={{
-            flex: 1,
-            alignSelf: 'center',
-            height: height,
-            width: width,
-            justifyContent: "center",
-            alignItems: "center",
-
-          }}
+          style={styles.imageBackground}
           source={require("./assets/back3.jpg")}
         >
           {isLoadedWeatherApi ? (
@@ -115,7 +112,7 @@ export default class App extends React.Component {
                 temp={Math.floor(temperature - 273.15)}
               />
               <View style={styles.greeting}>
-                <Text style={styles.greetingText}> Hello DaeSung !</Text>
+                <Text style={styles.greetingText}> Hello, react!</Text>
               </View>
             </View>
           ) : (
@@ -127,17 +124,19 @@ export default class App extends React.Component {
             </View>
           )}
           <Time />
-          <View style={styles.quote}>
-            <HTML
-              baseFontStyle={{ fontSize: 14, color: "white" }}
-              html={"<p>" + this.state.quote_content + "</p>"}
-            />
-            <Text style={styles.quoteText}>{this.state.quote_title}</Text>
+          <View style={styles.quotocard}>
+            <ScrollView contentContainerStyle={styles.quote}>
+              <HTML
+                baseFontStyle={{ fontSize: 14, color: "white" }}
+                html={"<p>" + quote_content + "</p>"}
+              />
+            </ScrollView>
           </View>
+          <Text style={styles.quoteText}>{quote_title}</Text>
           <View style={styles.card}>
             <TextInput
               style={styles.input}
-              placeholder={"New To Do"}
+              placeholder={"  새로운 할 일 추가"}
               value={newToDo}
               onChangeText={this._contollNewToDo}
               placeholderTextColor={"#999"}
@@ -173,7 +172,6 @@ export default class App extends React.Component {
 
   _loadToDos = async () => {
     try {
-      await AsyncStorage.clear();
       const toDos = await AsyncStorage.getItem("toDos");
       let parsedToDos = {};
       if (toDos !== null) {
@@ -284,6 +282,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#3FA9F5",
     alignItems: "center"
   },
+  imageBackground: {
+    flex: 1,
+    alignSelf: "center",
+    height: height,
+    width: width,
+    justifyContent: "center",
+    alignItems: "center"
+  },
   errorText: {
     color: "red",
     backgroundColor: "transparent",
@@ -317,6 +323,7 @@ const styles = StyleSheet.create({
     marginRight: 20,
     marginLeft: 20,
     alignItems: "center",
+    height: height / 6
   },
   title: {
     color: "white",
@@ -328,9 +335,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     flex: 4,
-    width: width - 25,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    width: width - 40,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 20,
     ...Platform.select({
       ios: {
         shadowColor: "rgb(50, 50, 50)",
@@ -346,11 +354,16 @@ const styles = StyleSheet.create({
       }
     })
   },
+  quotocard: {
+    flex: 1,
+    width: width - 25,
+    marginTop: -20
+  },
   input: {
-    padding: 20,
+    padding: 10,
     borderBottomColor: "#bbb",
     borderBottomWidth: 1,
-    fontSize: 25
+    fontSize: 15
   },
   toDos: {
     alignItems: "center"

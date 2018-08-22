@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     marginTop: 30,
+    marginLeft: 10
   },
   lower : {
     flexDirection: "column",
