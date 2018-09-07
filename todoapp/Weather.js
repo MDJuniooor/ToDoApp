@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 const weatherCases = {
   Rain: {
     colors: ["#00C6FB", "#005BEA"],
-    title: "비",
+    title: "비 ",
     subtitle: "Today's weather is Rainy.",
     icon: "weather-rainy"
   },
